@@ -34,7 +34,14 @@ func main() {
 	reader := getReader(&args)
 	cipher = getCipher(&args)
 
-	read, err = reader.Read(data)
+	read, err = 0, nil
+	for err == nil || read < 0 {
+		read, err = reader.Read(data)
+		for _, symbol := range data {
+			ciphertext := cipher.Encode(symbol)
+			fmt.Println("Ciphertext: %s", ciphertext)
+		}
+	}
 }
 
 // Obtain the reader from where the data will be read
@@ -52,6 +59,7 @@ func getReader(args *arguments) io.Reader {
 	return in
 }
 
+// Obtain a cipher given the arguments
 func getCipher(args *arguments) Cipher {
 	var cipher Cipher
 	return cipher
@@ -63,11 +71,10 @@ func isStdin() bool {
 		in   io.Reader
 		data []byte
 		err  error
-		read int
 	)
 	data = make([]byte, 100)
 	in = os.Stdin
-	read, err = in.Read(data)
+	_, err = in.Read(data)
 	return err != nil
 }
 
