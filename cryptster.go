@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -37,13 +38,17 @@ func main() {
 	flag.Parse()
 	printArgs(&args)
 
-	data = make([]byte, 1024)
+	data = make([]byte, bytes.MinRead)
 	reader, err := getReader(&args)
 	cipher = getCipher(&args)
 
-	read, err, text = 0, nil, ""
+	read, text = 0, ""
 	for err == nil || err != io.EOF || read > 0 {
 		read, err = reader.Read(data)
+		if err != nil {
+			break
+		}
+
 		printLn("Read "+fmt.Sprintf("%d", read)+" bytes", *args.Verbose)
 
 		for n := 0; n < read; n++ {
@@ -65,8 +70,10 @@ func main() {
 	if *args.Output != "" {
 		reader = strings.NewReader(text)
 		read, err = reader.Read(data)
-		data = data[0:read]
-		err = ioutil.WriteFile(*args.Output, data, 0644)
+		if err != nil {
+			data = data[0:read]
+			err = ioutil.WriteFile(*args.Output, data, 0644)
+		}
 	} else {
 		fmt.Println(text)
 	}
