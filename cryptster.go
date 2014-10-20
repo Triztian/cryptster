@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -17,10 +18,10 @@ type arguments struct {
 	Cipher  *string
 	File    *string
 	Text    *string
+	Output  *string
 }
 
 func main() {
-	fmt.Println("Cryptster Started")
 	var (
 		args    arguments
 		ciphers []string
@@ -34,7 +35,10 @@ func main() {
 	initCiphers(&ciphers)
 
 	flag.Parse()
-	printArgs(&args)
+	if *args.Verbose {
+		printArgs(&args)
+	}
+
 	data = make([]byte, 1024)
 	reader, err := getReader(&args)
 	cipher = getCipher(&args)
@@ -53,6 +57,7 @@ func main() {
 			}
 
 			text += fmt.Sprintf("%c", symbol)
+
 			if *args.Verbose {
 				fmt.Println("Encoding: ", strByte(data[n]), " --> ", strByte(symbol))
 			}
@@ -60,11 +65,18 @@ func main() {
 	}
 
 	fmt.Println(text)
+
+	if *args.Output != "" {
+		reader = strings.NewReader(text)
+		read, err = reader.Read(data)
+		data = data[0:read]
+		err = ioutil.WriteFile(*args.Output, data, 0644)
+	}
 }
 
 // Obtain the reader from where the data will be read
 func getReader(args *arguments) (io.Reader, error) {
-	if *args.Text != "" {
+	if *args.Text != "" && *args.File == "" {
 		printLn("Data from -t flag", *args.Verbose)
 		return strings.NewReader(*args.Text), nil
 
@@ -74,6 +86,7 @@ func getReader(args *arguments) (io.Reader, error) {
 
 	} else {
 		return nil, nil
+
 	}
 }
 
@@ -96,6 +109,7 @@ func initFlags() arguments {
 		flag.String("c", "Plain", "The cipher that will be used to encode data"),
 		flag.String("f", "", "The file path from where the data will be read."),
 		flag.String("t", "", "The text to be ciphered/unciphered; as string"),
+		flag.String("o", "", "The file path to where the output will be stored."),
 	}
 
 	return args
@@ -109,20 +123,25 @@ func initCiphers(ciphers *[]string) {
 	}
 }
 
+// Print a line, based on the value of the verbose flag
 func printLn(message string, verbose bool) {
 	if verbose {
 		fmt.Println(message)
 	}
 }
 
+// Print the arguments of the program
 func printArgs(args *arguments) {
 	fmt.Println("Version: ", *args.Version)
 	fmt.Println("Verbose: ", *args.Verbose)
+	fmt.Println("Decode: ", *args.Decode)
 	fmt.Println("Cipher: ", *args.Cipher)
-	fmt.Println("Data: ", *args.Text)
+	fmt.Println("Text: ", *args.Text)
 	fmt.Println("File: ", *args.File)
+	fmt.Println("Output: ", *args.Output)
 }
 
+// Code and String representation of a byte
 func strByte(b byte) string {
 	return fmt.Sprintf("%d:%c", b, b)
 }
