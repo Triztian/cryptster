@@ -1,20 +1,35 @@
 package main
 
+import "fmt"
+
 type Cipher interface {
 	Encode(symbol byte) byte
 	Decode(ciphertext byte) byte
 }
 
-// ROT13 Cipher to implement the Cipher interface
-type ROT13Cipher struct{}
+// Plaintext cipher; no encoding
+type PlainTextCipher struct{}
 
-// Simple rotate function to implement the substitution
-// It rotates the byte by 13
-func (c ROT13Cipher) Encode(symbol byte) byte {
-	return symbol + 13
+func (p PlainTextCipher) Encode(symbol byte) byte {
+	return symbol
+}
+func (p PlainTextCipher) Decode(ciphertext byte) byte {
+	return ciphertext
 }
 
-// Simple decoding function for the ROT13 cipher
-func (c ROT13Cipher) Decode(ciphertext byte) byte {
-	return ciphertext - 13
+// ROT Cipher to implement the Cipher interface
+type ROTCipher struct {
+	rotation byte
+}
+
+// Simple rotate function to implement the substitution
+// It rotates the byte by it's rotation field
+func (c ROTCipher) Encode(symbol byte) byte {
+	fmt.Println("Encoding", symbol)
+	return symbol + c.rotation
+}
+
+// Simple decoding function for the ROT cipher
+func (c ROTCipher) Decode(ciphertext byte) byte {
+	return ciphertext - c.rotation
 }
