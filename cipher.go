@@ -5,7 +5,7 @@ type Cipher interface {
 	Decode(ciphertext byte) byte
 }
 
-// Plaintext cipher; no encoding
+// Plaintext cipher; no encoding; pass-through
 type PlainTextCipher struct{}
 
 func (p PlainTextCipher) Encode(symbol byte) byte {
@@ -16,6 +16,8 @@ func (p PlainTextCipher) Decode(ciphertext byte) byte {
 }
 
 // ROT Cipher to implement the Cipher interface
+// The rot cipher adds it's rotation to the encoded symbol
+// and subtracts it to the decoded ciphertext
 type ROTCipher struct {
 	rotation byte
 }

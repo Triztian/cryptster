@@ -24,24 +24,31 @@ type arguments struct {
 
 func main() {
 	var (
-		args    arguments
-		ciphers []string
-		data    []byte
-		read    int
-		err     error
-		cipher  Cipher
-		text    string
+		args   arguments
+		data   []byte
+		read   int
+		err    error
+		cipher Cipher
+		text   string
 	)
+
+	// Initialize the flag/cli arguments variable
 	args = initFlags()
-	initCiphers(&ciphers)
 
 	flag.Parse()
+	// Print the arguments if Verbose was enabled
 	printArgs(&args)
 
+	// Create the buffer to hold data
 	data = make([]byte, bytes.MinRead)
 	reader, err := getReader(&args)
+
+	// Obtain the cipher based on the passed arguments
 	cipher = getCipher(&args)
 
+	// Start reading the data, data is read into a byte array/slice
+	// After the array has been populated, we need to encode/decode
+	// each byte; that is done in the inner loop.
 	read, text = 0, ""
 	for err == nil || err != io.EOF || read > 0 {
 		read, err = reader.Read(data)
@@ -51,6 +58,7 @@ func main() {
 
 		printLn("Read "+fmt.Sprintf("%d", read)+" bytes", *args.Verbose)
 
+		// After reading we encode or decode each byte
 		for n := 0; n < read; n++ {
 			var symbol byte
 			if *args.Decode {
@@ -59,8 +67,11 @@ func main() {
 				symbol = cipher.Encode(data[n])
 			}
 
+			// Concatenate the character representation of the
+			// processed symbol
 			text += fmt.Sprintf("%c", symbol)
 
+			// If verbose is set; print the processing of each symbol.
 			printLn("Encoding: "+strByte(data[n])+" --> "+strByte(symbol), *args.Verbose)
 		}
 	}
@@ -79,7 +90,11 @@ func main() {
 	}
 }
 
-// Obtain the reader from where the data will be read
+// Obtain the reader from where the data will be read.
+// If the arguments specifias a file from where to read the data
+// it is used instead of the -t argument value.
+// Either way we return a io.Reader object whichs source is a file
+// or a string.
 func getReader(args *arguments) (io.Reader, error) {
 	if *args.Text != "" && *args.File == "" {
 		printLn("Data from -t flag", *args.Verbose)
@@ -95,7 +110,9 @@ func getReader(args *arguments) (io.Reader, error) {
 	}
 }
 
-// Obtain a cipher given the arguments
+// Obtain a cipher given the arguments.
+// Ciphers are mapped from a string to a "instance" of the
+// cipher. New ciphers and their CLI values are defined here
 func getCipher(args *arguments) Cipher {
 	printLn("CipherArg: "+*args.Cipher, *args.Verbose)
 	if *args.Cipher == "ROT13" {
@@ -111,21 +128,13 @@ func initFlags() arguments {
 		flag.Bool("v", false, "Prints the current version of the program"),
 		flag.Bool("V", false, "Work in verbose mode."),
 		flag.Bool("d", false, "Decode the string or file content using the specified cipher."),
-		flag.String("c", "Plain", "The cipher that will be used to encode data"),
+		flag.String("c", "Plain", "The cipher that will be used to encode data: Plain, ROT13"),
 		flag.String("f", "", "The file path from where the data will be read."),
 		flag.String("t", "", "The text to be ciphered/unciphered; as string"),
 		flag.String("o", "", "The file path to where the output will be stored."),
 	}
 
 	return args
-}
-
-// Initialize the available cipher list
-func initCiphers(ciphers *[]string) {
-	ciphers = &[]string{
-		"Plain",
-		"ROT13",
-	}
 }
 
 // Print a line, based on the value of the verbose flag
