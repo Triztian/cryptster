@@ -5,6 +5,8 @@ A simple library to implement basic ciphers
 
 It currently supports the ROT13 cipher (similar). Well actually it just adds 13 to the input.
 
+Repo: https://github.com/Triztian/cryptster
+
 ## Usage
 
 ### Ciphering a string
