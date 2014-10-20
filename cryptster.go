@@ -46,7 +46,9 @@ func main() {
 	read, err, text = 0, nil, ""
 	for err == nil || err != io.EOF || read > 0 {
 		read, err = reader.Read(data)
-		printLn("Read "+fmt.Sprintf("%d", read)+" bytes", *args.Verbose)
+		if *args.Verbose {
+			printLn("Read "+fmt.Sprintf("%d", read)+" bytes", *args.Verbose)
+		}
 
 		for n := 0; n < read; n++ {
 			var symbol byte
@@ -64,13 +66,13 @@ func main() {
 		}
 	}
 
-	fmt.Println(text)
-
 	if *args.Output != "" {
 		reader = strings.NewReader(text)
 		read, err = reader.Read(data)
 		data = data[0:read]
 		err = ioutil.WriteFile(*args.Output, data, 0644)
+	} else {
+		fmt.Println(text)
 	}
 }
 
@@ -105,7 +107,7 @@ func initFlags() arguments {
 	args := arguments{
 		flag.Bool("v", false, "Prints the current version of the program"),
 		flag.Bool("V", false, "Work in verbose mode."),
-		flag.Bool("d", false, "Work in verbose mode."),
+		flag.Bool("d", false, "Decode the string or file content using the specified cipher."),
 		flag.String("c", "Plain", "The cipher that will be used to encode data"),
 		flag.String("f", "", "The file path from where the data will be read."),
 		flag.String("t", "", "The text to be ciphered/unciphered; as string"),
