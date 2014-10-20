@@ -1,11 +1,16 @@
 package main
 
-import "fmt"
-
 const (
 	CLASS_TRANSPOSITION = "transposition"
 	CLASS_SUBSTITUTION  = "substitution"
 )
+
+type Cipher interface {
+	Class() string
+	Encode(symbol byte) byte
+	Decode(ciphertext byte) byte
+	SetPlaintext(plaintext []byte)
+}
 
 // Convenience function to determine if the given cipher is a transposition
 // cipher
@@ -14,16 +19,9 @@ func IsTransposition(cipher Cipher) bool {
 }
 
 // Convenience function to determine fi the given cipher is a
-// substitution
+// substitution cipher
 func IsSubstitution(cipher Cipher) bool {
 	return cipher.Class() == CLASS_SUBSTITUTION
-}
-
-type Cipher interface {
-	Class() string
-	Encode(symbol byte) byte
-	Decode(ciphertext byte) byte
-	SetPlaintext(plaintext []byte)
 }
 
 // Plaintext cipher; no encoding; pass-through
@@ -84,23 +82,26 @@ type RouteCipher struct {
 	Plaintext []byte
 }
 
+// Encoding takes the symbol as the index within the plaintext of the element
+// to be encoded, it swaps it by starting from the last position.
 func (c RouteCipher) Encode(symbol byte) byte {
-	fmt.Println("Sym: ", int(symbol), "Len: ", len(c.Plaintext), "Plaintext: ", c.Plaintext)
-	i := len(c.Plaintext) - int(symbol) - 1
-	fmt.Println("i: ", i)
-	return c.Plaintext[i]
+	return c.Plaintext[len(c.Plaintext)-int(symbol)-1]
 
 }
 
+// Decodig takes the symbol as the index within the plaintext of the element
+// to be encoded, it swaps it by starting from the first; it is basically the same
+// method of Encoding
 func (c RouteCipher) Decode(symbol byte) byte {
-	i := len(c.Plaintext) - int(symbol) - 1
-	return c.Plaintext[i]
+	return c.Encode(symbol)
 }
 
+// Defines the class of the cipher
 func (c RouteCipher) Class() string {
 	return CLASS_TRANSPOSITION
 }
 
+// Sets the plaintext field of the RouteCipher
 func (c *RouteCipher) SetPlaintext(plaintext []byte) {
 	c.Plaintext = make([]byte, len(plaintext))
 	for i, b := range plaintext {
