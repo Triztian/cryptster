@@ -13,9 +13,10 @@ import (
 type arguments struct {
 	Version *bool
 	Verbose *bool
+	Decode  *bool
 	Cipher  *string
 	File    *string
-	Data    *string
+	Text    *string
 }
 
 func main() {
@@ -42,24 +43,35 @@ func main() {
 	for err == nil || err != io.EOF || read > 0 {
 		read, err = reader.Read(data)
 		printLn("Read "+fmt.Sprintf("%d", read)+" bytes", *args.Verbose)
+
 		for n := 0; n < read; n++ {
-			ciphertext := cipher.Encode(data[n])
-			text += strByte(ciphertext)
+			var symbol byte
+			if *args.Decode {
+				symbol = cipher.Decode(data[n])
+			} else {
+				symbol = cipher.Encode(data[n])
+			}
+
+			text += fmt.Sprintf("%c", symbol)
 			if *args.Verbose {
-				fmt.Println("Ciphertext: ", strByte(data[n]), " --> ", strByte(ciphertext))
+				fmt.Println("Encoding: ", strByte(data[n]), " --> ", strByte(symbol))
 			}
 		}
 	}
+
+	fmt.Println(text)
 }
 
 // Obtain the reader from where the data will be read
 func getReader(args *arguments) (io.Reader, error) {
-	if *args.Data != "" {
-		printLn("Data from -d flag", *args.Verbose)
-		return strings.NewReader(*args.Data), nil
+	if *args.Text != "" {
+		printLn("Data from -t flag", *args.Verbose)
+		return strings.NewReader(*args.Text), nil
+
 	} else if *args.File != "" {
 		printLn("Data from -f flag", *args.Verbose)
 		return os.Open(*args.File)
+
 	} else {
 		return nil, nil
 	}
@@ -80,9 +92,10 @@ func initFlags() arguments {
 	args := arguments{
 		flag.Bool("v", false, "Prints the current version of the program"),
 		flag.Bool("V", false, "Work in verbose mode."),
+		flag.Bool("d", false, "Work in verbose mode."),
 		flag.String("c", "Plain", "The cipher that will be used to encode data"),
 		flag.String("f", "", "The file path from where the data will be read."),
-		flag.String("d", "", "The data to be ciphered, as string"),
+		flag.String("t", "", "The text to be ciphered/unciphered; as string"),
 	}
 
 	return args
@@ -106,7 +119,7 @@ func printArgs(args *arguments) {
 	fmt.Println("Version: ", *args.Version)
 	fmt.Println("Verbose: ", *args.Verbose)
 	fmt.Println("Cipher: ", *args.Cipher)
-	fmt.Println("Data: ", *args.Data)
+	fmt.Println("Data: ", *args.Text)
 	fmt.Println("File: ", *args.File)
 }
 
