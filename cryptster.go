@@ -56,15 +56,30 @@ func main() {
 			break
 		}
 
+		// Slice the trailing zeros if the data that was read is less
+		// than `bytes.MinRead`
+		data = data[0:read]
+
 		printLn("Read "+fmt.Sprintf("%d", read)+" bytes", *args.Verbose)
+
+		if IsTransposition(cipher) {
+			printLn("Is transposition", *args.Verbose)
+			cipher.SetPlaintext(data)
+		}
 
 		// After reading we encode or decode each byte
 		for n := 0; n < read; n++ {
-			var symbol byte
-			if *args.Decode {
-				symbol = cipher.Decode(data[n])
+			var symbol, unit byte
+			if IsTransposition(cipher) {
+				unit = byte(n)
 			} else {
-				symbol = cipher.Encode(data[n])
+				unit = data[n]
+			}
+
+			if *args.Decode {
+				symbol = cipher.Decode(unit)
+			} else {
+				symbol = cipher.Encode(unit)
 			}
 
 			// Concatenate the character representation of the
@@ -117,6 +132,8 @@ func getCipher(args *arguments) Cipher {
 	printLn("CipherArg: "+*args.Cipher, *args.Verbose)
 	if *args.Cipher == "ROT13" {
 		return ROTCipher{13}
+	} else if *args.Cipher == "ROUTE" {
+		return new(RouteCipher)
 	} else {
 		return PlainTextCipher{}
 	}
