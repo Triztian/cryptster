@@ -35,9 +35,7 @@ func main() {
 	initCiphers(&ciphers)
 
 	flag.Parse()
-	if *args.Verbose {
-		printArgs(&args)
-	}
+	printArgs(&args)
 
 	data = make([]byte, 1024)
 	reader, err := getReader(&args)
@@ -46,9 +44,7 @@ func main() {
 	read, err, text = 0, nil, ""
 	for err == nil || err != io.EOF || read > 0 {
 		read, err = reader.Read(data)
-		if *args.Verbose {
-			printLn("Read "+fmt.Sprintf("%d", read)+" bytes", *args.Verbose)
-		}
+		printLn("Read "+fmt.Sprintf("%d", read)+" bytes", *args.Verbose)
 
 		for n := 0; n < read; n++ {
 			var symbol byte
@@ -60,12 +56,12 @@ func main() {
 
 			text += fmt.Sprintf("%c", symbol)
 
-			if *args.Verbose {
-				fmt.Println("Encoding: ", strByte(data[n]), " --> ", strByte(symbol))
-			}
+			printLn("Encoding: "+strByte(data[n])+" --> "+strByte(symbol), *args.Verbose)
 		}
 	}
 
+	// If the Output flag is provided
+	// it is stored in the specified file and not printed to stdout
 	if *args.Output != "" {
 		reader = strings.NewReader(text)
 		read, err = reader.Read(data)
@@ -134,13 +130,15 @@ func printLn(message string, verbose bool) {
 
 // Print the arguments of the program
 func printArgs(args *arguments) {
-	fmt.Println("Version: ", *args.Version)
-	fmt.Println("Verbose: ", *args.Verbose)
-	fmt.Println("Decode: ", *args.Decode)
-	fmt.Println("Cipher: ", *args.Cipher)
-	fmt.Println("Text: ", *args.Text)
-	fmt.Println("File: ", *args.File)
-	fmt.Println("Output: ", *args.Output)
+	if *args.Verbose {
+		fmt.Println("Version: ", *args.Version)
+		fmt.Println("Verbose: ", *args.Verbose)
+		fmt.Println("Decode: ", *args.Decode)
+		fmt.Println("Cipher: ", *args.Cipher)
+		fmt.Println("Text: ", *args.Text)
+		fmt.Println("File: ", *args.File)
+		fmt.Println("Output: ", *args.Output)
+	}
 }
 
 // Code and String representation of a byte
