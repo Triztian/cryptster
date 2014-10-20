@@ -29,3 +29,7 @@ $ cryptster -c "ROT13" -t "Hello" -o "my-secret-file.rot13"
 $ cryptster -d -c "ROT13" -t "Uryy|"
 ```
 
+### Unciphering a file
+```
+$ cryptster -d -c "ROT13" -f "my-secret-file.rot13" 
+```
