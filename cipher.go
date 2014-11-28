@@ -108,3 +108,7 @@ func (c *RouteCipher) SetPlaintext(plaintext []byte) {
 		c.Plaintext[i] = b
 	}
 }
+
+type KeySortCipher struct {
+	key []byte
+}

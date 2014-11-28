@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bytes"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -20,16 +19,14 @@ type arguments struct {
 	File    *string
 	Text    *string
 	Output  *string
+	Hash    *bool
 }
 
 func main() {
 	var (
 		args   arguments
-		data   []byte
-		read   int
+		result []byte
 		err    error
-		cipher Cipher
-		text   string
 	)
 
 	// Initialize the flag/cli arguments variable
@@ -39,69 +36,29 @@ func main() {
 	// Print the arguments if Verbose was enabled
 	printArgs(&args)
 
-	// Create the buffer to hold data
-	data = make([]byte, bytes.MinRead)
 	reader, err := getReader(&args)
+	if err != nil {
+		panic(err)
+	}
 
-	// Obtain the cipher based on the passed arguments
-	cipher = getCipher(&args)
+	if *args.Hash {
+		result = hash(reader, *args.Verbose)
 
-	// Start reading the data, data is read into a byte array/slice
-	// After the array has been populated, we need to encode/decode
-	// each byte; that is done in the inner loop.
-	read, text = 0, ""
-	for err == nil || err != io.EOF || read > 0 {
-		read, err = reader.Read(data)
-		if err != nil {
-			break
-		}
+	} else if *args.Cipher != "" {
+		result = cipher(reader, getCipher(&args), *args.Decode, *args.Verbose)
 
-		// Slice the trailing zeros if the data that was read is less
-		// than `bytes.MinRead`
-		data = data[0:read]
-
-		printLn("Read "+fmt.Sprintf("%d", read)+" bytes", *args.Verbose)
-
-		if IsTransposition(cipher) {
-			printLn("Is transposition", *args.Verbose)
-			cipher.SetPlaintext(data)
-		}
-
-		// After reading we encode or decode each byte
-		for n := 0; n < read; n++ {
-			var symbol, unit byte
-			if IsTransposition(cipher) {
-				unit = byte(n)
-			} else {
-				unit = data[n]
-			}
-
-			if *args.Decode {
-				symbol = cipher.Decode(unit)
-			} else {
-				symbol = cipher.Encode(unit)
-			}
-
-			// Concatenate the character representation of the
-			// processed symbol
-			text += fmt.Sprintf("%c", symbol)
-
-			// If verbose is set; print the processing of each symbol.
-			printLn("Encoding: "+strByte(data[n])+" --> "+strByte(symbol), *args.Verbose)
-		}
 	}
 
 	// If the Output flag is provided
 	// it is stored in the specified file and not printed to stdout
 	if *args.Output != "" {
-		reader = strings.NewReader(text)
-		read, err = reader.Read(data)
-		if err != nil {
-			data = data[0:read]
-			err = ioutil.WriteFile(*args.Output, data, 0644)
-		}
+		output(result, *args.Output)
 	} else {
-		fmt.Println(text)
+		if *args.Hash {
+			fmt.Println(hex.EncodeToString(result))
+		} else {
+			fmt.Println(toString(result))
+		}
 	}
 }
 
@@ -149,6 +106,7 @@ func initFlags() arguments {
 		flag.String("f", "", "The file path from where the data will be read."),
 		flag.String("t", "", "The text to be ciphered/unciphered; as string"),
 		flag.String("o", "", "The file path to where the output will be stored."),
+		flag.Bool("h", false, "Indicates if a SHA1 hash of the file or text"),
 	}
 
 	return args
@@ -169,6 +127,7 @@ func printArgs(args *arguments) {
 		fmt.Println("Decode: ", *args.Decode)
 		fmt.Println("Cipher: ", *args.Cipher)
 		fmt.Println("Text: ", *args.Text)
+		fmt.Println("Hash: ", *args.Hash)
 		fmt.Println("File: ", *args.File)
 		fmt.Println("Output: ", *args.Output)
 	}
@@ -177,4 +136,15 @@ func printArgs(args *arguments) {
 // Code and String representation of a byte
 func strByte(b byte) string {
 	return fmt.Sprintf("%d:%c", b, b)
+}
+
+func toString(data []byte) string {
+	// Concatenate the character representation of the
+	// processed symbol
+	text := ""
+	for _, symbol := range data {
+		text += fmt.Sprintf("%c", symbol)
+	}
+
+	return text
 }
