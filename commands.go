@@ -9,6 +9,7 @@ import (
 	"github.com/Triztian/cryptster/digest"
 )
 
+// Perform the cipher of the data that is obtained from the reader
 func cipher(reader io.Reader, cipher Cipher, decode, verbose bool) []byte {
 	var (
 		data, results []byte
@@ -63,6 +64,7 @@ func cipher(reader io.Reader, cipher Cipher, decode, verbose bool) []byte {
 	return results
 }
 
+// Create a hash from the data that is obtain from the reader
 func hash(reader io.Reader, verbose bool) []byte {
 	var (
 		data, msg, results []byte
@@ -72,12 +74,14 @@ func hash(reader io.Reader, verbose bool) []byte {
 	)
 	data = make([]byte, bytes.MinRead)
 	results = make([]byte, bytes.MinRead)
-	msg = make([]byte, bytes.MinRead)
+	msg = make([]byte, 0)
 
 	read, err = reader.Read(data)
+	fmt.Println("Read Data:", data)
+	fmt.Println("Message: ", msg)
 	for read > 0 && err == nil {
-		for _, x := range data {
-			msg = append(msg, x)
+		for i := 0; i < read; i++ {
+			msg = append(msg, data[i])
 		}
 
 		if verbose {
