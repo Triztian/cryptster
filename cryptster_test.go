@@ -9,6 +9,18 @@ import (
 	"github.com/Triztian/cryptster/digest"
 )
 
+func compareBytes(a, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := 0; i < len(a); i++ {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
 func TestIntConversion(t *testing.T) {
 	var i64 uint64 = 0xFFFFFFFF00000000
 	var i32 uint32 = 0xFFFFFFFF
@@ -19,33 +31,31 @@ func TestIntConversion(t *testing.T) {
 }
 
 func TestGetBytes(t *testing.T) {
-	/*
-		var (
-			x64 uint64 = 0xFFFFFFFF00000000
-			b64 []byte = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0}
+	var (
+		x64 uint64 = 0xFFFFFFFF00000000
+		b64 []byte = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0}
 
-			x32 uint32 = 0xFFFF0000
-			b32 []byte = []byte{255, 255, 255, 255, 0, 0, 0, 0}
-		)
+		x32 uint32 = 0xFFFF0000
+		b32 []byte = []byte{255, 255, 255, 255, 0, 0, 0, 0}
+	)
 
-		t.Skip()
+	t.Skip()
 
-			r64 := digest.GetBytes64(x64)
-			if r64 != b64 {
-				t.Error("Incorrect byte extraction for uint64")
-			}
+	r64 := digest.GetBytes64(x64)
+	if !compareBytes(r64, b64) {
+		t.Error("Incorrect byte extraction for uint64")
+	}
 
-			r32 := digest.GetBytes32(x32)
-			if r32 != b32 {
-				t.Error("Incorrect byte extraction for uint32")
-			}
-	*/
+	r32 := digest.GetBytes32(x32)
+	if !compareBytes(r32, b32) {
+		t.Error("Incorrect byte extraction for uint32")
+	}
 }
 
 //
 func TestGetInts(t *testing.T) {
 	var (
-		b32 []byte = []byte{255, 255, 255, 255, 0, 0, 0, 0}
+		b32 []byte = []byte{255, 255, 0, 0}
 		x32 uint32 = 0xFFFF0000
 	)
 
@@ -60,7 +70,7 @@ func TestLrot(t *testing.T) {
 	var (
 		x64 uint64 = 0x8000000080000000
 		r64 uint64 = 0x0000000100000001
-		x32 uint32 = 0x80000000
+		x32 uint32 = 0x80008000
 		r32 uint32 = 0x00010001
 	)
 
