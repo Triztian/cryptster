@@ -18,16 +18,60 @@ func TestIntConversion(t *testing.T) {
 	}
 }
 
+func TestGetBytes(t *testing.T) {
+	/*
+		var (
+			x64 uint64 = 0xFFFFFFFF00000000
+			b64 []byte = []byte{255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0}
+
+			x32 uint32 = 0xFFFF0000
+			b32 []byte = []byte{255, 255, 255, 255, 0, 0, 0, 0}
+		)
+
+		t.Skip()
+
+			r64 := digest.GetBytes64(x64)
+			if r64 != b64 {
+				t.Error("Incorrect byte extraction for uint64")
+			}
+
+			r32 := digest.GetBytes32(x32)
+			if r32 != b32 {
+				t.Error("Incorrect byte extraction for uint32")
+			}
+	*/
+}
+
+//
+func TestGetInts(t *testing.T) {
+	var (
+		b32 []byte = []byte{255, 255, 255, 255, 0, 0, 0, 0}
+		x32 uint32 = 0xFFFF0000
+	)
+
+	r32 := digest.GetInt32(b32)
+	if r32 != x32 {
+		t.Errorf("Incorrect byte conversion got \"%x\", expected \"%x\"", r32, x32)
+	}
+}
+
 // This test case verifies that the bit rotation is done properly
 func TestLrot(t *testing.T) {
 	var (
-		x uint64 = 0x8000000080000000
-		r uint64 = 0x0000000100000001
+		x64 uint64 = 0x8000000080000000
+		r64 uint64 = 0x0000000100000001
+		x32 uint32 = 0x80000000
+		r32 uint32 = 0x00010001
 	)
 
-	a := digest.Lrot(x, 1)
-	if a != r {
-		t.Errorf("Left Rotation incorrect got %x expected %x", a, r)
+	a64 := digest.Lrot64(x64, 1)
+	if a64 != r64 {
+		t.Errorf("64-bit Left Rotation incorrect got %x expected %x", a64, r64)
+	}
+
+	a32 := digest.Lrot32(x32, 1)
+	if a32 != r32 {
+		t.Errorf("32-bit Left Rotation incorrect got %x expected %x", a32, r32)
 	}
 }
 
