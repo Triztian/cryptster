@@ -77,8 +77,12 @@ func hash(reader io.Reader, verbose bool) []byte {
 	msg = make([]byte, 0)
 
 	read, err = reader.Read(data)
-	fmt.Println("Read Data:", data)
-	fmt.Println("Message: ", msg)
+
+	if verbose {
+		fmt.Println("Read Data:", data)
+		fmt.Println("Message: ", msg)
+	}
+
 	for read > 0 && err == nil {
 		for i := 0; i < read; i++ {
 			msg = append(msg, data[i])

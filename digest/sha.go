@@ -1,6 +1,18 @@
 package digest
 
-import "fmt"
+const (
+	SHA_A uint32 = 0x67452301
+	SHA_B uint32 = 0xEFCDAB89
+	SHA_C uint32 = 0x98BADCFE
+	SHA_D uint32 = 0x10325476
+	SHA_E uint32 = 0xC3D2E1F0
+
+	// The K values used in the main loop
+	K_0_19  uint32 = 0x5A827999
+	K_20_39 uint32 = 0x6ED9EBA1
+	K_40_59 uint32 = 0x8F1BBCDC
+	K_60_79 uint32 = 0xCA62C1D6
+)
 
 type SHA interface {
 	Digest(message []byte) []byte
@@ -17,13 +29,13 @@ func between(x, a, b int) bool {
 // Perform a left bitwise rotation of
 // an 64 bit integer
 func Lrot64(x uint64, n uint64) uint64 {
-	return (x << n) | ((x & 0x8000000000000000) >> 63)
+	return (x << n) | (x >> (64 - n))
 }
 
 // Perform a left bitwise rotation of
 // an 64 bit integer
 func Lrot32(x, n uint32) uint32 {
-	return (x << n) | ((x & 0x80000000) >> 31)
+	return (x << n) | (x >> (32 - n))
 }
 
 // Obtain the bytes of a uint64 number (Big-Endian)
@@ -63,26 +75,26 @@ func GetInt32(b []byte) uint32 {
 
 // Perform a SHA1 message digest
 func (sha SHA1) Digest(message []byte) []byte {
+
+	/*
+		fmt.Println("SHA1 ---")
+		fmt.Println("Message: ", message)
+		fmt.Println("Message bit length: ", len(message)*8)
+	*/
+
 	var ml uint64 = uint64(len(message) * 8)
 
 	h0, h1, h2, h3, h4 := SHA_A, SHA_B, SHA_C, SHA_D, SHA_E
 
-	fmt.Println("Message (No Bit 1)", message)
-	fmt.Printf("Length (Bit): 0x%x\n", ml)
 	message = append(message, 0x80)
 
 	// Preprocessing; Pad the message with 0's until it
 	// is congruent with 448 (mod 512)
-	np := int((448 - (ml+8)%512) / 8)
-
-	fmt.Printf("Padding: %d\n", np)
-	fmt.Println("Message (No Padding)", message)
+	np := int((448-ml%512)/8) - 1
 
 	for i := 0; i < np; i++ {
 		message = append(message, 0x00)
 	}
-
-	fmt.Println("Message (Padding)", message)
 
 	// Append the original message length as a 64 bit integer
 	// Why 64? because 512 - 448 = 64, the remaining bits from the
@@ -91,13 +103,13 @@ func (sha SHA1) Digest(message []byte) []byte {
 		message = append(message, b)
 	}
 
-	fmt.Println("Message (With length)", message)
-	fmt.Println("Message length: ", len(message)*8)
+	//fmt.Println("Message length: ", len(message))
 
-	for c := 0; c < len(message)/64; c++ {
+	for c := 0; c < int((len(message)*8)/512); c++ {
 		chunk := message[c : c+64]
 		w := make([]uint32, 80)
-		fmt.Println("Chunk: ", chunk)
+
+		//fmt.Println("Chunk: ", chunk)
 
 		a, b, c, d, e := h0, h1, h2, h3, h4
 
@@ -105,10 +117,12 @@ func (sha SHA1) Digest(message []byte) []byte {
 			var f, k uint32
 
 			if i < 16 {
-				word := chunk[i : i+4]
+				word := chunk[i*4 : i*4+4]
 				w[i] = GetInt32(word)
+
 			} else {
 				w[i] = Lrot32(w[i-3]^w[i-8]^w[i-14]^w[i-16], 1)
+
 			}
 
 			if between(i, 0, 19) {
@@ -127,8 +141,6 @@ func (sha SHA1) Digest(message []byte) []byte {
 				f = b ^ c ^ d
 				k = K_60_79
 
-			} else {
-				panic("Should no be reached")
 			}
 
 			tmp := Lrot32(a, 5) + f + e + k + w[i]
@@ -137,6 +149,8 @@ func (sha SHA1) Digest(message []byte) []byte {
 			c = Lrot32(b, 30)
 			b = a
 			a = tmp
+
+			//fmt.Printf("Values: %d %x %x %x %x %x\n", i, a, b, c, d, e)
 		}
 
 		h0 += a
@@ -155,6 +169,10 @@ func (sha SHA1) Digest(message []byte) []byte {
 		GetBytes32(h4),
 	}
 
+	//fmt.Println("Ib: ", ib)
+
+	// Flatten the bytes of the hash vars into a single 20 byte array
+	// to create the final hash value
 	hh := make([]byte, 20)
 	for i, h := range ib {
 		for j, b := range h {
@@ -162,6 +180,6 @@ func (sha SHA1) Digest(message []byte) []byte {
 			hh[idx] = b
 		}
 	}
-
+	//fmt.Println("Digest: ", hh)
 	return hh
 }
