@@ -1,4 +1,4 @@
-package digest
+package main
 
 const (
 	SHA_A uint32 = 0x67452301

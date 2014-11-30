@@ -5,8 +5,6 @@ import (
 	"encoding/hex"
 	"strings"
 	"testing"
-
-	"github.com/Triztian/cryptster/digest"
 )
 
 func compareBytes(a, b []byte) bool {
@@ -41,12 +39,12 @@ func TestGetBytes(t *testing.T) {
 
 	t.Skip()
 
-	r64 := digest.GetBytes64(x64)
+	r64 := GetBytes64(x64)
 	if !compareBytes(r64, b64) {
 		t.Error("Incorrect byte extraction for uint64")
 	}
 
-	r32 := digest.GetBytes32(x32)
+	r32 := GetBytes32(x32)
 	if !compareBytes(r32, b32) {
 		t.Error("Incorrect byte extraction for uint32")
 	}
@@ -59,7 +57,7 @@ func TestGetInts(t *testing.T) {
 		x32 uint32 = 0xFFFF0000
 	)
 
-	r32 := digest.GetInt32(b32)
+	r32 := GetInt32(b32)
 	if r32 != x32 {
 		t.Errorf("Incorrect byte conversion got \"%x\", expected \"%x\"", r32, x32)
 	}
@@ -90,17 +88,17 @@ func TestLrot(t *testing.T) {
 		s32 uint32 = 0x87878787
 	)
 
-	a64 := digest.Lrot64(x64, 1)
+	a64 := Lrot64(x64, 1)
 	if a64 != r64 {
 		t.Errorf("64-bit Left Rotation incorrect got %x expected %x", a64, r64)
 	}
 
-	a32 := digest.Lrot32(x32, 1)
+	a32 := Lrot32(x32, 1)
 	if a32 != r32 {
 		t.Errorf("32-bit Left Rotation incorrect got %x expected %x", a32, r32)
 	}
 
-	b32 := digest.Lrot32(y32, 3)
+	b32 := Lrot32(y32, 3)
 	if b32 != s32 {
 		t.Errorf("32-bit Left 3 Rotation incorrect got %x expected %x", b32, s32)
 	}
@@ -114,7 +112,7 @@ func TestSHA(t *testing.T) {
 
 	dmsg := make([]byte, bytes.MinRead)
 
-	sha := digest.SHA1{}
+	sha := SHA1{}
 	for message, dig := range messages {
 		reader := strings.NewReader(message)
 

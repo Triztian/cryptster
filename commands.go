@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-
-	"github.com/Triztian/cryptster/digest"
 )
 
 // Perform the cipher of the data that is obtained from the reader
@@ -70,7 +68,7 @@ func hash(reader io.Reader, verbose bool) []byte {
 		data, msg, results []byte
 		read               int
 		err                error
-		sha                digest.SHA
+		sha                SHA
 	)
 	data = make([]byte, bytes.MinRead)
 	results = make([]byte, bytes.MinRead)
@@ -94,7 +92,7 @@ func hash(reader io.Reader, verbose bool) []byte {
 		read, err = reader.Read(data)
 	}
 
-	sha = digest.SHA1{}
+	sha = SHA1{}
 	results = sha.Digest(msg)
 
 	return results
