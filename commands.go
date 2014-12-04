@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/big"
 )
 
 // Perform the cipher of the data that is obtained from the reader
@@ -57,6 +58,41 @@ func cipherText(reader io.Reader, cipher SimpleCipher, decode, verbose bool) []b
 
 			results = append(results, symbol)
 		}
+	}
+
+	return results
+}
+
+// Perfomr des3 ciphering
+func des3(reader io.Reader, key []byte, decrypt, verbose bool) []byte {
+	var (
+		des3key, data, results []byte
+	)
+
+	des3key = append(des3key, key[:16]...)
+	des3key = append(des3key, key[:8]...)
+
+	des, err := NewTripleDESCipher(des3key)
+	if err != nil {
+		panic(err)
+	}
+	data = make([]byte, BlockSize)
+	results = make([]byte, BlockSize)
+
+	read, err := reader.Read(data)
+	if read < 0 {
+		return []byte{}
+	}
+
+	for b := 0; b < int(len(data)/BlockSize); b++ {
+		block := make([]byte, BlockSize)
+		if decrypt {
+			des.Decrypt(block, data[b:b+BlockSize])
+		} else {
+			des.Encrypt(block, data[b:b+BlockSize])
+		}
+
+		results = append(results, block...)
 	}
 
 	return results
@@ -123,6 +159,29 @@ func aes128(reader io.Reader, key []byte, verbose bool) []byte {
 		results = aesCBC128(plaintext[:read], cipherkey)
 	} else {
 		panic("Could not read data.")
+	}
+	return results
+}
+
+func rsa(reader io.Reader, key []byte, decrypt, verbose bool) []byte {
+	var (
+		data, results []byte
+	)
+
+	data = make([]byte, bytes.MinRead)
+	results = make([]byte, bytes.MinRead)
+
+	bikey := big.NewInt(0)
+	bikey = bikey.SetBytes(key)
+	bigN := big.NewInt(N)
+	read, err := reader.Read(data)
+	if err != nil {
+		panic(err)
+	}
+	if decrypt {
+		results = RSAEncrypt(data[:read], bikey, bigN)
+	} else {
+		results = RSADecrypt(data[:read], bikey, bigN)
 	}
 	return results
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
@@ -53,7 +52,6 @@ func TestGetBytes(t *testing.T) {
 	}
 }
 
-//
 func TestGetInts(t *testing.T) {
 	var (
 		b32 []byte = []byte{255, 255, 0, 0}
@@ -142,7 +140,7 @@ func randByte() byte {
 func TestAES(t *testing.T) {
 	var (
 		b   byte = 0xAF
-		sbx byte = 0x08
+		sbx byte = 0x79
 
 		//s   string = "A"
 		//key string = "secret"
@@ -151,69 +149,5 @@ func TestAES(t *testing.T) {
 	sb := subByte(b)
 	if sb != sbx {
 		t.Errorf("Incorrect subByte for 0x%x, expected %x got %x", b, sbx, sb)
-	}
-}
-
-func TestDES(t *testing.T) {
-	// NewTripleDESCipher can also be used when EDE2 is required by
-	// duplicating the first 8 bytes of the 16-byte key.
-	ede2Key := []byte("Secreto de Redes")
-
-	var tripleDESKey, plaintext, ciphertext, replaintext []byte
-	tripleDESKey = append(tripleDESKey, ede2Key[:16]...)
-	tripleDESKey = append(tripleDESKey, ede2Key[:8]...)
-
-	des, err := NewTripleDESCipher(tripleDESKey)
-	if err != nil {
-		panic(err)
-	}
-
-	plaintext = make([]byte, 128)
-	ciphertext = make([]byte, 128)
-	replaintext = make([]byte, 128)
-
-	for i := 0; i < 128; i++ {
-		plaintext[i] = randByte()
-	}
-
-	// Decrypt the ciphertext in the same way that it was encrypted.
-	for b := 0; b < int(len(plaintext)/BlockSize); b++ {
-		cipherBlock := make([]byte, BlockSize)
-		des.Encrypt(cipherBlock, plaintext[b:b+BlockSize])
-		ciphertext = append(ciphertext, cipherBlock...)
-	}
-
-	// Decrypt the ciphertext in the same way that it was encrypted.
-	for b := 0; b < int(len(ciphertext)/BlockSize); b++ {
-		plainBlock := make([]byte, BlockSize)
-		des.Decrypt(plainBlock, ciphertext[b:b+BlockSize])
-		replaintext = append(replaintext, plainBlock...)
-	}
-
-	des.Encrypt(ciphertext, plaintext)
-	des.Decrypt(replaintext, ciphertext)
-
-	fmt.Println("\nPlaintext: ")
-	fmt.Println(plaintext)
-
-	fmt.Println("\nCiphertext: ")
-	fmt.Println(ciphertext)
-
-	fmt.Println("\nRecovered Plaintext: ")
-	fmt.Println(replaintext)
-}
-
-func sum(a, b int) int {
-	return a + b
-}
-
-func TestSum(t *testing.T) {
-	var (
-		a, b, r int = 10, 15, 25
-	)
-
-	x := sum(a, b)
-	if x != r {
-		t.Error("Incorrect sum")
 	}
 }

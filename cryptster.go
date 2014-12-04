@@ -52,23 +52,20 @@ func main() {
 				panic("Key is missing")
 
 			} else {
-				fmt.Println("Using Key: ", *args.Key)
-				key := make([]byte, bytes.MinRead)
-				ks := strings.NewReader(*args.Key)
-				n, err := ks.Read(key)
-				if err == nil && n >= 16 {
-					result = aes128(reader, key[:n], *args.Verbose)
-				} else {
-					if n < 16 {
-						panic(fmt.Sprintf("Key is less than 16 bytes (128 bits): %d", n))
-					} else {
-						panic(err)
-					}
-				}
+				key := getKey(&args)
+				result = aes128(reader, key, *args.Verbose)
 			}
+		} else if *args.Cipher == "RSA" {
+			key := getKey(&args)
+			result = rsa(reader, key, *args.Decode, *args.Verbose)
+
+		} else if *args.Cipher == "DES3" {
+			fmt.Println("Using DES3")
+			key := getKey(&args)
+			result = des3(reader, key, *args.Decode, *args.Verbose)
+
 		} else {
 			result = cipherText(reader, getCipher(&args), *args.Decode, *args.Verbose)
-
 		}
 	}
 
@@ -115,8 +112,40 @@ func getCipher(args *arguments) SimpleCipher {
 	} else if *args.Cipher == "ROUTE" {
 		return new(RouteCipher)
 	} else {
+		fmt.Println("Plain Cipher")
 		return PlainTextCipher{}
 	}
+}
+
+// Obtain the key bytes depending on the selected cipher and
+//
+func getKey(args *arguments) []byte {
+	var ks io.Reader
+	var err error
+	var read int
+
+	key := make([]byte, bytes.MinRead)
+
+	if *args.Cipher == "RSA" {
+		if *args.Key == "" {
+			panic("Key file is missing")
+		}
+		ks, err = os.Open(*args.Key)
+
+	} else if *args.Cipher == "AESCBC128" {
+		ks = strings.NewReader(*args.Key)
+
+	} else if *args.Cipher == "DES3" {
+		ks = strings.NewReader(*args.Key)
+	}
+
+	fmt.Println("Using Key: ", *args.Key)
+	read, err = ks.Read(key)
+	if read <= 0 || (err != nil && err != io.EOF) {
+		panic("Could not read key")
+	}
+
+	return key
 }
 
 // Initialize the flags that the available on the CLI

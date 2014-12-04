@@ -19,31 +19,14 @@ var (
 // Euler's PHI function
 // http://intjforum.com/showthread.php?t=33068
 // http://math.wikia.com/wiki/Euler%27s_totient_function
-func phi(n, p, q int64) *big.Int {
-	if n == 2 {
-		return ZERO
-	}
+func phi(p, q int64) *big.Int {
+	bp := big.NewInt(p)
+	bq := big.NewInt(q)
 
-	var t, bn, i *big.Int
-	bn = big.NewInt(n)
+	bp = bp.Sub(bp, ONE)
+	bq = bq.Sub(bq, ONE)
 
-	if n < 0 {
-		return bn.Abs(bn)
-	}
-
-	if n == 3 {
-		return big.NewInt(n)
-	}
-
-	for i = big.NewInt(p); i.Cmp(bn) == -1; i = i.Add(i, TWO) {
-		if bn.Mod(bn, i).Cmp(ZERO) == 0 && i.ProbablyPrime(MILLER_RABIN_COUNT) {
-			one := big.NewInt(1)
-			tmp := one.Sub(one, one.Div(one, big.NewInt(p)))
-			t = t.Mul(t, tmp)
-		}
-	}
-
-	return bn.Mul(bn, t)
+	return bp.Mul(bp, bq)
 }
 
 func initPrimes() (int64, int64, int64) {
@@ -68,14 +51,14 @@ func computeD(e, phiN *big.Int) *big.Int {
 
 func GenKeyPair() (*big.Int, *big.Int) {
 	var e, d, phiN *big.Int
-	phiN = phi(N, P, Q)
+	phiN = phi(P, Q)
 	e = computeE(phiN)
 	return e, d
 }
 
-func Encrypt(data []byte, d, n *big.Int) []byte {
+func RSAEncrypt(plaintext []byte, d, n *big.Int) []byte {
 	msg := make([]byte, 0)
-	for _, M := range data {
+	for _, M := range plaintext {
 		m := big.NewInt(0)
 		m = m.SetBytes([]byte{M})
 		for _, b := range m.Exp(m, d, n).Bytes() {
@@ -86,10 +69,10 @@ func Encrypt(data []byte, d, n *big.Int) []byte {
 	return msg
 }
 
-func Decrypt(ciphertext []byte, e, n *big.Int) []byte {
+func RSADecrypt(plaintext []byte, e, n *big.Int) []byte {
 	msg := make([]byte, 0)
 	ic := big.NewInt(0)
-	for _, c := range ciphertext {
+	for _, c := range plaintext {
 		if c != DELIM {
 			ic = ic.SetBytes(append(ic.Bytes(), c))
 		} else {
