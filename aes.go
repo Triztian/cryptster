@@ -188,17 +188,19 @@ func aesCBC128(plaintext []byte, cipherkey [4][4]byte) []byte {
 	// Generate the keys to be used for each round
 	// keys[ROUNDS][4][4]
 	roundKeys := keyExpansion(cipherkey)
-	fmt.Println("RoundKeys: ", roundKeys)
+	//fmt.Println("RoundKeys: ", roundKeys)
 
 	blockSize := int(BLOCK_SIZE)
 
-	fmt.Println("Message Len (byte): ", len(plaintext))
+	//fmt.Println("Message Len (byte): ", len(plaintext))
 	for len(plaintext)%(blockSize/8) != 0 {
 		plaintext = append(plaintext, 0x00)
 	}
 
-	fmt.Println("Message Len (byte): ", len(plaintext))
-	fmt.Println("Message: ", plaintext)
+	/*
+		fmt.Println("Message Len (byte): ", len(plaintext))
+		fmt.Println("Message: ", plaintext)
+	*/
 
 	var blocks [][4][4]byte
 	for b := 0; b < len(plaintext); b++ {
@@ -219,7 +221,7 @@ func aesCBC128(plaintext []byte, cipherkey [4][4]byte) []byte {
 	for _, block := range blocks {
 
 		for round := 0; round < ROUNDS; round++ {
-			fmt.Println("Round: ", round)
+			//		fmt.Println("Round: ", round)
 			var key [4][4]byte
 
 			for k := 0; k < 4; k++ {
