@@ -129,3 +129,19 @@ func TestSHA(t *testing.T) {
 		}
 	}
 }
+
+func TestAES(t *testing.T) {
+	var (
+		b   byte = 0xAF
+		sbx byte = 0x08
+
+		//s   string = "A"
+		//key string = "secret"
+	)
+
+	sb := subByte(b)
+	if sb != sbx {
+		t.Errorf("Incorrect subByte for 0x%x, expected %x got %x", b, sbx, sb)
+	}
+
+}

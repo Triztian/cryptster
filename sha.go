@@ -20,7 +20,7 @@ type SHA interface {
 
 type SHA1 struct{}
 
-// Determint if the given int is contained within
+// Determine if the given int is contained within
 // the specified range
 func between(x, a, b int) bool {
 	return a <= x && x <= b

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/hex"
 	"flag"
 	"fmt"
@@ -19,6 +20,7 @@ type arguments struct {
 	File    *string
 	Text    *string
 	Output  *string
+	Key     *string
 	Hash    *bool
 }
 
@@ -45,8 +47,29 @@ func main() {
 		result = hash(reader, *args.Verbose)
 
 	} else if *args.Cipher != "" {
-		result = cipher(reader, getCipher(&args), *args.Decode, *args.Verbose)
+		if *args.Cipher == "AESCBC128" {
+			if *args.Key == "" {
+				panic("Key is missing")
 
+			} else {
+				fmt.Println("Using Key: ", *args.Key)
+				key := make([]byte, bytes.MinRead)
+				ks := strings.NewReader(*args.Key)
+				n, err := ks.Read(key)
+				if err == nil && n >= 16 {
+					result = aes128(reader, key[:n], *args.Verbose)
+				} else {
+					if n < 16 {
+						panic(fmt.Sprintf("Key is less than 16 bytes (128 bits): %d", n))
+					} else {
+						panic(err)
+					}
+				}
+			}
+		} else {
+			result = cipher(reader, getCipher(&args), *args.Decode, *args.Verbose)
+
+		}
 	}
 
 	// If the Output flag is provided
@@ -106,6 +129,7 @@ func initFlags() arguments {
 		flag.String("f", "", "The file path from where the data will be read."),
 		flag.String("t", "", "The text to be ciphered/unciphered; as string"),
 		flag.String("o", "", "The file path to where the output will be stored."),
+		flag.String("k", "", "The key to use for the given cipher"),
 		flag.Bool("h", false, "Indicates if a SHA1 hash of the file or text"),
 	}
 
@@ -130,6 +154,7 @@ func printArgs(args *arguments) {
 		fmt.Println("Hash: ", *args.Hash)
 		fmt.Println("File: ", *args.File)
 		fmt.Println("Output: ", *args.Output)
+		fmt.Println("Key: ", *args.Key)
 	}
 }
 

@@ -98,6 +98,35 @@ func hash(reader io.Reader, verbose bool) []byte {
 	return results
 }
 
+// Perform AES CBC 128 encryption
+func aes128(reader io.Reader, key []byte, verbose bool) []byte {
+	var (
+		results   []byte
+		plaintext []byte
+		cipherkey [4][4]byte
+	)
+
+	plaintext = make([]byte, bytes.MinRead)
+
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 4; j++ {
+			cipherkey[i][j] = key[i*4+j]
+		}
+	}
+
+	if verbose {
+		fmt.Println("Key: ", cipherkey)
+	}
+
+	read, err := reader.Read(plaintext)
+	if read > 0 && err == nil {
+		results = aesCBC128(plaintext[:read], cipherkey)
+	} else {
+		panic("Could not read data.")
+	}
+	return results
+}
+
 func output(data []byte, filepath string) {
 	err := ioutil.WriteFile(filepath, data, 0644)
 	if err != nil {
