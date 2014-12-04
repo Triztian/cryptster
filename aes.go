@@ -5,7 +5,7 @@ import "fmt"
 const (
 	BLOCK_SIZE byte = 128
 	ROUNDS     int  = 10
-	N          int  = 16
+	AES_N      int  = 16
 	B          int  = 176
 )
 
@@ -182,7 +182,7 @@ func mixColumns(block [4][4]byte) [4][4]byte {
 
 // Perform AES CBC encription of data
 func aesCBC128(plaintext []byte, cipherkey [4][4]byte) []byte {
-	var states [N][4][4]byte
+	var states [AES_N][4][4]byte
 	var ciphertext []byte
 
 	// Generate the keys to be used for each round

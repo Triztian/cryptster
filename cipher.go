@@ -5,7 +5,7 @@ const (
 	CLASS_SUBSTITUTION  = "substitution"
 )
 
-type Cipher interface {
+type SimpleCipher interface {
 	Class() string
 	Encode(symbol byte) byte
 	Decode(ciphertext byte) byte
@@ -14,13 +14,13 @@ type Cipher interface {
 
 // Convenience function to determine if the given cipher is a transposition
 // cipher
-func IsTransposition(cipher Cipher) bool {
+func IsTransposition(cipher SimpleCipher) bool {
 	return cipher.Class() == CLASS_TRANSPOSITION
 }
 
 // Convenience function to determine fi the given cipher is a
 // substitution cipher
-func IsSubstitution(cipher Cipher) bool {
+func IsSubstitution(cipher SimpleCipher) bool {
 	return cipher.Class() == CLASS_SUBSTITUTION
 }
 

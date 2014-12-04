@@ -8,7 +8,7 @@ import (
 )
 
 // Perform the cipher of the data that is obtained from the reader
-func cipher(reader io.Reader, cipher Cipher, decode, verbose bool) []byte {
+func cipherText(reader io.Reader, cipher SimpleCipher, decode, verbose bool) []byte {
 	var (
 		data, results []byte
 		read          int

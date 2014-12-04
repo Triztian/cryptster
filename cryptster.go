@@ -67,7 +67,7 @@ func main() {
 				}
 			}
 		} else {
-			result = cipher(reader, getCipher(&args), *args.Decode, *args.Verbose)
+			result = cipherText(reader, getCipher(&args), *args.Decode, *args.Verbose)
 
 		}
 	}
@@ -108,7 +108,7 @@ func getReader(args *arguments) (io.Reader, error) {
 // Obtain a cipher given the arguments.
 // Ciphers are mapped from a string to a "instance" of the
 // cipher. New ciphers and their CLI values are defined here
-func getCipher(args *arguments) Cipher {
+func getCipher(args *arguments) SimpleCipher {
 	printLn("CipherArg: "+*args.Cipher, *args.Verbose)
 	if *args.Cipher == "ROT13" {
 		return ROTCipher{13}
