@@ -17,7 +17,7 @@ func cipherText(reader io.Reader, cipher SimpleCipher, decode, verbose bool) []b
 	)
 
 	data = make([]byte, bytes.MinRead)
-	results = make([]byte, bytes.MinRead)
+	results = make([]byte, 0)
 	read = 0
 
 	// Start reading the data, data is read into a byte array/slice
@@ -63,7 +63,7 @@ func cipherText(reader io.Reader, cipher SimpleCipher, decode, verbose bool) []b
 	return results
 }
 
-// Perfomr des3 ciphering
+// Perfom des3 ciphering
 func des3(reader io.Reader, key []byte, decrypt, verbose bool) []byte {
 	var (
 		des3key, data, results []byte
@@ -72,16 +72,25 @@ func des3(reader io.Reader, key []byte, decrypt, verbose bool) []byte {
 	des3key = append(des3key, key[:16]...)
 	des3key = append(des3key, key[:8]...)
 
+	if verbose {
+		fmt.Println("DES3 Key", des3key)
+	}
+
 	des, err := NewTripleDESCipher(des3key)
 	if err != nil {
 		panic(err)
 	}
-	data = make([]byte, BlockSize)
-	results = make([]byte, BlockSize)
+	data = make([]byte, 128)
+	results = make([]byte, 0)
 
 	read, err := reader.Read(data)
 	if read < 0 {
 		return []byte{}
+	}
+
+	data = data[:read]
+	if verbose {
+		fmt.Println("Data: ", data)
 	}
 
 	for b := 0; b < int(len(data)/BlockSize); b++ {
@@ -91,8 +100,14 @@ func des3(reader io.Reader, key []byte, decrypt, verbose bool) []byte {
 		} else {
 			des.Encrypt(block, data[b:b+BlockSize])
 		}
-
+		if verbose {
+			fmt.Println("Block: ", b, block)
+		}
 		results = append(results, block...)
+	}
+
+	if verbose {
+		fmt.Println("Results: ", results)
 	}
 
 	return results

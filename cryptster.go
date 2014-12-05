@@ -13,7 +13,6 @@ import (
 // This structure indicates the available
 // flags on the CLI
 type arguments struct {
-	Version *bool
 	Verbose *bool
 	Decode  *bool
 	Cipher  *string
@@ -22,6 +21,8 @@ type arguments struct {
 	Output  *string
 	Key     *string
 	Hash    *bool
+	Genkey  *bool
+	Hex     *bool
 }
 
 func main() {
@@ -60,7 +61,6 @@ func main() {
 			result = rsa(reader, key, *args.Decode, *args.Verbose)
 
 		} else if *args.Cipher == "DES3" {
-			fmt.Println("Using DES3")
 			key := getKey(&args)
 			result = des3(reader, key, *args.Decode, *args.Verbose)
 
@@ -74,7 +74,7 @@ func main() {
 	if *args.Output != "" {
 		output(result, *args.Output)
 	} else {
-		if *args.Hash {
+		if *args.Hex {
 			fmt.Println(hex.EncodeToString(result))
 		} else {
 			fmt.Println(toString(result))
@@ -112,7 +112,9 @@ func getCipher(args *arguments) SimpleCipher {
 	} else if *args.Cipher == "ROUTE" {
 		return new(RouteCipher)
 	} else {
-		fmt.Println("Plain Cipher")
+		if *args.Verbose {
+			fmt.Println("Plain Cipher")
+		}
 		return PlainTextCipher{}
 	}
 }
@@ -139,20 +141,22 @@ func getKey(args *arguments) []byte {
 		ks = strings.NewReader(*args.Key)
 	}
 
-	fmt.Println("Using Key: ", *args.Key)
+	if *args.Verbose {
+		fmt.Println("Using Key: ", *args.Key)
+	}
+
 	read, err = ks.Read(key)
 	if read <= 0 || (err != nil && err != io.EOF) {
 		panic("Could not read key")
 	}
 
-	return key
+	return key[:read]
 }
 
 // Initialize the flags that the available on the CLI
 func initFlags() arguments {
 	args := arguments{
-		flag.Bool("v", false, "Prints the current version of the program"),
-		flag.Bool("V", false, "Work in verbose mode."),
+		flag.Bool("v", false, "Work in verbose mode."),
 		flag.Bool("d", false, "Decode the string or file content using the specified cipher."),
 		flag.String("c", "Plain", "The cipher that will be used to encode data: Plain, ROT13"),
 		flag.String("f", "", "The file path from where the data will be read."),
@@ -160,6 +164,8 @@ func initFlags() arguments {
 		flag.String("o", "", "The file path to where the output will be stored."),
 		flag.String("k", "", "The key to use for the given cipher"),
 		flag.Bool("h", false, "Indicates if a SHA1 hash of the file or text"),
+		flag.Bool("g", false, "Indicates if the key pairs will be generated"),
+		flag.Bool("x", false, "Indicates if the output will be in hex format"),
 	}
 
 	return args
@@ -175,7 +181,6 @@ func printLn(message string, verbose bool) {
 // Print the arguments of the program
 func printArgs(args *arguments) {
 	if *args.Verbose {
-		fmt.Println("Version: ", *args.Version)
 		fmt.Println("Verbose: ", *args.Verbose)
 		fmt.Println("Decode: ", *args.Decode)
 		fmt.Println("Cipher: ", *args.Cipher)
@@ -184,6 +189,7 @@ func printArgs(args *arguments) {
 		fmt.Println("File: ", *args.File)
 		fmt.Println("Output: ", *args.Output)
 		fmt.Println("Key: ", *args.Key)
+		fmt.Println("Genkey: ", *args.Genkey)
 	}
 }
 

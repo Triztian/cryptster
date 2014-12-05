@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 const (
 	BLOCK_SIZE byte = 128
 	ROUNDS     int  = 10
@@ -151,7 +149,7 @@ func xorBlocks(a, b [4][4]byte) [4][4]byte {
 
 // Perform the shift rows operation
 func shiftRows(block [4][4]byte) [4][4]byte {
-	fmt.Println("ShiftRows: ", block)
+	//fmt.Println("ShiftRows: ", block)
 	var words [4]uint32
 
 	for n := 0; n < 4; n++ {
